@@ -7,22 +7,18 @@
     import { Separator } from "$lib/components/ui/separator";
     import { Calendar, Clock, FileText, Info, ChevronLeft, Heart, Share2, Building, Users, BarChart4 } from 'lucide-svelte';
     
-    // Active tab state
     let activeTab = "details";
     
-    // Mock data for related instruments
     const relatedInstruments = [
       { name: "HPLC System", category: "Chromatography", image: "/api/placeholder/100/100" },
       { name: "Mass Spectrometer", category: "Spectroscopy", image: "/api/placeholder/100/100" },
       { name: "Thermal Analyzer", category: "Thermal Analysis", image: "/api/placeholder/100/100" }
     ];
     
-    // Mock data for upcoming maintenance
     const upcomingMaintenance = [
       { date: "March 15, 2025", duration: "2 days" }
     ];
     
-    // Toggle favorite function
     let isFavorite = false;
     const toggleFavorite = () => {
       isFavorite = !isFavorite;
@@ -34,7 +30,7 @@
     <header class="bg-white border-b sticky top-0 z-10">
       <div class="container mx-auto px-4 py-3">
         <div class="flex justify-between items-center">
-          <!-- Logo -->
+          <!-- Logo wait ploy-->
           <div class="flex items-center space-x-2">
             <div class="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
               <span class="text-white font-bold text-xl">SC</span>
