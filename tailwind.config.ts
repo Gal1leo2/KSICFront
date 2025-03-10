@@ -67,8 +67,10 @@ const config: Config = {
 				sm: "calc(var(--radius) - 4px)"
 			},
 			fontFamily: {
-				sans: [...fontFamily.sans]
-			},
+				sans: ['Noto Sans', 'Noto Sans Thai', 'sans-serif'],
+				serif: ['Noto Serif', 'Noto Serif Thai', 'serif'],
+				thai: ['Noto Sans Thai', 'sans-serif'],
+			  },
 			keyframes: {
 				"accordion-down": {
 					from: { height: "0" },
