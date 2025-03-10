@@ -1,36 +1,123 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { Button } from "$lib/components/ui/button";
+    import { Input } from "$lib/components/ui/input";
     import { Card } from "$lib/components/ui/card";
-    import { Tabs, TabsContent, TabsList, TabsTrigger } from "$lib/components/ui/tabs";
-    import { Badge } from "$lib/components/ui/badge";
     import { Separator } from "$lib/components/ui/separator";
-    import { Calendar, Clock, FileText, Info, ChevronLeft, Heart, Share2, Building, Users, BarChart4 } from 'lucide-svelte';
+    import { Search, Microscope, Dna, TestTube, Omega, Bolt, FilterIcon, X, Menu } from 'lucide-svelte';
     
-    let activeTab = "details";
+    let searchQuery: string = "";
+    let selectedCategory: string | null = null;
+    let mobileMenuOpen: boolean = false;
     
-    const relatedInstruments = [
-      { name: "HPLC System", category: "Chromatography", image: "/api/placeholder/100/100" },
-      { name: "Mass Spectrometer", category: "Spectroscopy", image: "/api/placeholder/100/100" },
-      { name: "Thermal Analyzer", category: "Thermal Analysis", image: "/api/placeholder/100/100" }
+    const categories = [
+      { icon: Microscope, name: 'Sample preparation equipment', description: 'PCR, Microscopes, Cell Counters' },
+      { icon: Dna, name: 'Biological test', description: 'Centrifuges, Incubators, Balances' },
+      { icon: TestTube, name: 'Applied chemical instrument', description: 'Homogenizers, Extractors, Filters' },
+      { icon: Bolt, name: 'General equipment', description: 'HPLC, GC, Elemental Analyzers' },
+      { icon: Omega, name: 'Physical and structural characterization', description: 'HPLC, GC, Elemental Analyzers' }
     ];
     
-    const upcomingMaintenance = [
-      { date: "March 15, 2025", duration: "2 days" }
+    const instruments = [
+      { 
+        name: 'Scanning Electron Microscope', 
+        model: 'JEOL JSM-7800F', 
+        category: 'Physical and structural characterization',
+        availability: 'Available', 
+        description: 'High-resolution microscope using electron beams to create detailed surface images with magnification up to 300,000x.',
+        image: "/api/placeholder/300/200" 
+      },
+      { 
+        name: 'FTIR Spectrometer', 
+        model: 'Bruker Tensor II', 
+        category: 'Physical and structural characterization',
+        availability: 'Maintenance', 
+        description: 'Identifies chemical bonds in molecules by analyzing infrared absorption spectrum. Suitable for organic and inorganic compound analysis.',
+        image: "/api/placeholder/300/200" 
+      },
+      { 
+        name: 'Ultra-High Performance LC', 
+        model: 'Agilent 1290 Infinity II', 
+        category: 'Applied chemical instrument',
+        availability: 'Available', 
+        description: 'Advanced liquid chromatography system for separating, identifying, and quantifying components in complex mixtures.',
+        image: "/api/placeholder/300/200" 
+      },
+      { 
+        name: 'PCR Thermal Cycler', 
+        model: 'Bio-Rad T100', 
+        category: 'Sample preparation equipment',
+        availability: 'Available', 
+        description: 'Amplifies DNA segments through repeated heating and cooling cycles for genetic analysis.',
+        image: "/api/placeholder/300/200" 
+      },
+      { 
+        name: 'Microplate Reader', 
+        model: 'BioTek Synergy HTX', 
+        category: 'Biological test',
+        availability: 'Available', 
+        description: 'Multi-mode detection system for microplate assays including absorbance, fluorescence, and luminescence measurements.',
+        image: "/api/placeholder/300/200" 
+      },
+      { 
+        name: 'Differential Scanning Calorimeter', 
+        model: 'TA Instruments DSC 250', 
+        category: 'Applied chemical instrument',
+        availability: 'Available', 
+        description: 'Measures heat flow changes in samples for thermal analysis of phase transitions and chemical reactions.',
+        image: "/api/placeholder/300/200" 
+      },
+      { 
+        name: 'Analytical Balance', 
+        model: 'Mettler Toledo XPR', 
+        category: 'General equipment',
+        availability: 'Available', 
+        description: 'High-precision weighing instrument with readability to 0.01mg for accurate sample preparation.',
+        image: "/api/placeholder/300/200" 
+      },
+      { 
+        name: 'X-Ray Diffractometer', 
+        model: 'Rigaku MiniFlex 600', 
+        category: 'Physical and structural characterization',
+        availability: 'Maintenance', 
+        description: 'Determines crystal structures by measuring diffraction patterns of X-rays interacting with crystalline samples.',
+        image: "/api/placeholder/300/200" 
+      }
     ];
     
-    let isFavorite = false;
-    const toggleFavorite = () => {
-      isFavorite = !isFavorite;
-    };
+    $: filteredInstruments = instruments.filter(instrument => {
+      const matchesSearch = searchQuery === "" || 
+        instrument.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        instrument.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        instrument.description.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategory = selectedCategory === null || 
+        instrument.category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+    });
+  
+    function selectCategory(categoryName: string) {
+      selectedCategory = selectedCategory === categoryName ? null : categoryName;
+    }
+  
+    function clearFilters() {
+      selectedCategory = null;
+      searchQuery = "";
+    }
+    
+    function toggleMobileMenu() {
+      mobileMenuOpen = !mobileMenuOpen;
+    }
   </script>
   
-  <div class="min-h-screen bg-slate-50 flex flex-col">
-    <!-- Header -->
-    <header class="bg-white border-b sticky top-0 z-10">
+  <!-- Main Layout -->
+  <div class="min-h-screen bg-slate-50 font-sans flex flex-col">
+    <!-- Header with modern navigation -->
+    <header class="bg-white border-b sticky top-0 z-30">
       <div class="container mx-auto px-4 py-3">
         <div class="flex justify-between items-center">
-          <!-- Logo wait ploy-->
+          <!-- Logo -->
           <div class="flex items-center space-x-2">
             <div class="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
               <span class="text-white font-bold text-xl">SC</span>
@@ -40,471 +127,214 @@
             </h1>
           </div>
           
-          <!-- Navigation -->
+          <!-- Desktop Navigation -->
           <nav class="hidden md:flex space-x-6">
             <a href="/" class="text-slate-700 hover:text-blue-600 font-medium transition-colors">Services</a>
             <a href="/prices" class="text-slate-700 hover:text-blue-600 font-medium transition-colors">Service Rates</a>
-            <a href="/instruments" class="text-slate-700 hover:text-blue-600 font-medium transition-colors">Instruments</a>
+            <a href="/instruments" class="text-blue-600 font-medium transition-colors">Instruments</a>
             <a href="/aboutstaff" class="text-slate-700 hover:text-blue-600 font-medium transition-colors">About Us</a>
           </nav>
           
           <!-- Mobile Navigation Button -->
-          <Button variant="ghost" size="icon" class="md:hidden">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          <Button variant="ghost" size="icon" class="md:hidden" on:click={toggleMobileMenu}>
+            <Menu class="h-6 w-6" />
           </Button>
         </div>
       </div>
+      
+      <!-- Mobile Menu -->
+      {#if mobileMenuOpen}
+        <div class="md:hidden bg-white border-t p-4 absolute w-full z-20">
+          <nav class="flex flex-col space-y-3">
+            <a href="/" class="text-slate-700 hover:text-blue-600 font-medium py-2 transition-colors">Services</a>
+            <a href="/prices" class="text-slate-700 hover:text-blue-600 font-medium py-2 transition-colors">Service Rates</a>
+            <a href="/instruments" class="text-blue-600 font-medium py-2 transition-colors">Instruments</a>
+            <a href="/aboutstaff" class="text-slate-700 hover:text-blue-600 font-medium py-2 transition-colors">About Us</a>
+          </nav>
+        </div>
+      {/if}
     </header>
   
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8 flex-grow">
-      <!-- Back Link -->
-      <a href="/instruments" class="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6">
-        <ChevronLeft class="h-4 w-4 mr-1" />
-        Back to Instruments
-      </a>
-      
-      <!-- Instrument Details Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Main Content Area -->
-        <div class="lg:col-span-2">
-          <Card class="overflow-hidden shadow-lg">
-            <!-- Header with status badge -->
-            <div class="p-6 pb-0">
-              <div class="flex flex-wrap justify-between items-start mb-2">
-                <h1 class="text-3xl font-bold text-slate-900">GC-MS (Gas Chromatograph-Mass Spectrometer)</h1>
-                <Badge class="bg-green-100 text-green-800 hover:bg-green-100">Available</Badge>
-              </div>
-              <p class="text-slate-500 mb-4">Agilent 7890B GC and 5977B MS</p>
-            </div>
-            
-            <!-- Instrument Image -->
-            <div class="px-6">
-              <div class="rounded-lg overflow-hidden bg-slate-100 mb-6">
-                <img src="/api/placeholder/800/400" alt="GC-MS Instrument" class="w-full h-auto object-cover" />
-              </div>
-            </div>
-            
-            <!-- Action Buttons -->
-            <div class="px-6 flex space-x-4 mb-6">
-              <Button class="flex-1">Book Instrument</Button>
-              <Button variant="outline" class="flex items-center justify-center" on:click={toggleFavorite}>
-                <Heart class="h-4 w-4 mr-2" fill={isFavorite ? "currentColor" : "none"} />
-                {isFavorite ? 'Saved' : 'Save'}
-              </Button>
-              <Button variant="outline" class="flex items-center justify-center">
-                <Share2 class="h-4 w-4 mr-2" />
-                Share
-              </Button>
-            </div>
-            
-            <!-- Tabs -->
-            <div class="px-6 pb-6">
-              <Tabs value={activeTab} onValueChange={(value) => activeTab = value} class="w-full">
-                <TabsList class="grid w-full grid-cols-4 mb-6">
-                  <TabsTrigger value="details">Details</TabsTrigger>
-                  <TabsTrigger value="specifications">Specifications</TabsTrigger>
-                  <TabsTrigger value="applications">Applications</TabsTrigger>
-                  <TabsTrigger value="documents">Documents</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="details" class="bg-white p-6 rounded-lg border">
-                  <h2 class="text-xl font-semibold mb-4 text-slate-900">Instrument Details</h2>
-                  <p class="text-slate-700 leading-relaxed">
-                    The Gas Chromatograph-Mass Spectrometer (GC-MS) is a powerful
-                    analytical tool that combines the features of gas chromatography
-                    and mass spectrometry. It is used to identify different substances
-                    within a test sample and is widely used in forensic science,
-                    environmental analysis, and drug detection.
-                  </p>
-                  
-                  <h3 class="text-lg font-semibold mt-6 mb-3 text-slate-900">How It Works</h3>
-                  <p class="text-slate-700 leading-relaxed">
-                    GC-MS works by separating the chemical mixtures (the GC component) and then identifying 
-                    the components at a molecular level (the MS component). The sample solution is injected 
-                    into the GC inlet where it is vaporized and swept onto a chromatographic column by an inert carrier gas. 
-                    The compounds in the mixture are separated based on their relative interaction with the coating 
-                    of the column and the carrier gas. As compounds exit the GC column, they enter the MS where 
-                    they are bombarded with electrons, causing them to fragment. These fragments are charged ions 
-                    with a certain mass, and the mass spectrometer captures, ionizes, accelerates, deflects, and 
-                    detects the ionized molecules. The computer then processes this data and generates results.
-                  </p>
-                </TabsContent>
-                
-                <TabsContent value="specifications" class="bg-white p-6 rounded-lg border">
-                  <h2 class="text-xl font-semibold mb-4 text-slate-900">Technical Specifications</h2>
-                  
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                    <div>
-                      <h3 class="text-lg font-medium mb-2 text-slate-900">Gas Chromatograph</h3>
-                      <ul class="space-y-2">
-                        <li class="flex items-start">
-                          <span class="text-blue-600 font-medium mr-2">•</span>
-                          <div>
-                            <span class="font-medium">Model:</span> Agilent 7890B GC
-                          </div>
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-blue-600 font-medium mr-2">•</span>
-                          <div>
-                            <span class="font-medium">Oven Temperature Range:</span> Ambient +4°C to 450°C
-                          </div>
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-blue-600 font-medium mr-2">•</span>
-                          <div>
-                            <span class="font-medium">Heating Rate:</span> 120°C/min
-                          </div>
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-blue-600 font-medium mr-2">•</span>
-                          <div>
-                            <span class="font-medium">Autosampler:</span> 150 sample capacity
-                          </div>
-                        </li>
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h3 class="text-lg font-medium mb-2 text-slate-900">Mass Spectrometer</h3>
-                      <ul class="space-y-2">
-                        <li class="flex items-start">
-                          <span class="text-blue-600 font-medium mr-2">•</span>
-                          <div>
-                            <span class="font-medium">Model:</span> Agilent 5977B MS
-                          </div>
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-blue-600 font-medium mr-2">•</span>
-                          <div>
-                            <span class="font-medium">Mass Range:</span> 1-1050 amu
-                          </div>
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-blue-600 font-medium mr-2">•</span>
-                          <div>
-                            <span class="font-medium">Scan Rate:</span> Up to 20,000 amu/second
-                          </div>
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-blue-600 font-medium mr-2">•</span>
-                          <div>
-                            <span class="font-medium">Ionization Source:</span> Electron Impact (EI)
-                          </div>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                  
-                  <h3 class="text-lg font-medium mt-6 mb-2 text-slate-900">Software</h3>
-                  <ul class="space-y-2">
-                    <li class="flex items-start">
-                      <span class="text-blue-600 font-medium mr-2">•</span>
-                      <div>
-                        <span class="font-medium">Data System:</span> Agilent MassHunter Workstation
-                      </div>
-                    </li>
-                    <li class="flex items-start">
-                      <span class="text-blue-600 font-medium mr-2">•</span>
-                      <div>
-                        <span class="font-medium">Libraries:</span> NIST, Wiley, and custom libraries
-                      </div>
-                    </li>
-                  </ul>
-                </TabsContent>
-                
-                <TabsContent value="applications" class="bg-white p-6 rounded-lg border">
-                  <h2 class="text-xl font-semibold mb-4 text-slate-900">Applications</h2>
-                  
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-blue-50 rounded-lg p-4">
-                      <div class="flex items-center mb-3">
-                        <Building class="h-5 w-5 text-blue-600 mr-2" />
-                        <h3 class="font-medium text-lg text-slate-900">Industrial Applications</h3>
-                      </div>
-                      <ul class="space-y-2 text-slate-700">
-                        <li class="flex items-start">
-                          <span class="text-blue-600 mr-2">•</span>
-                          Petrochemical analysis
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-blue-600 mr-2">•</span>
-                          Fragrance and flavor compound identification
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-blue-600 mr-2">•</span>
-                          Food and beverage quality control
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-blue-600 mr-2">•</span>
-                          Polymer additive analysis
-                        </li>
-                      </ul>
-                    </div>
-                    
-                    <div class="bg-green-50 rounded-lg p-4">
-                      <div class="flex items-center mb-3">
-                        <BarChart4 class="h-5 w-5 text-green-600 mr-2" />
-                        <h3 class="font-medium text-lg text-slate-900">Environmental Applications</h3>
-                      </div>
-                      <ul class="space-y-2 text-slate-700">
-                        <li class="flex items-start">
-                          <span class="text-green-600 mr-2">•</span>
-                          Detection of pollutants in water, soil, and air
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-green-600 mr-2">•</span>
-                          Pesticide residue analysis
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-green-600 mr-2">•</span>
-                          Identification of volatile organic compounds (VOCs)
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-green-600 mr-2">•</span>
-                          Analysis of contaminants in groundwater
-                        </li>
-                      </ul>
-                    </div>
-                    
-                    <div class="bg-purple-50 rounded-lg p-4">
-                      <div class="flex items-center mb-3">
-                        <Users class="h-5 w-5 text-purple-600 mr-2" />
-                        <h3 class="font-medium text-lg text-slate-900">Clinical & Forensic Applications</h3>
-                      </div>
-                      <ul class="space-y-2 text-slate-700">
-                        <li class="flex items-start">
-                          <span class="text-purple-600 mr-2">•</span>
-                          Drug testing and toxicology screening
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-purple-600 mr-2">•</span>
-                          Forensic analysis of evidence
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-purple-600 mr-2">•</span>
-                          Metabolomics and biomarker discovery
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-purple-600 mr-2">•</span>
-                          Analysis of biological samples
-                        </li>
-                      </ul>
-                    </div>
-                    
-                    <div class="bg-amber-50 rounded-lg p-4">
-                      <div class="flex items-center mb-3">
-                        <FileText class="h-5 w-5 text-amber-600 mr-2" />
-                        <h3 class="font-medium text-lg text-slate-900">Research Applications</h3>
-                      </div>
-                      <ul class="space-y-2 text-slate-700">
-                        <li class="flex items-start">
-                          <span class="text-amber-600 mr-2">•</span>
-                          Identification of unknown compounds
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-amber-600 mr-2">•</span>
-                          Structural elucidation of organic molecules
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-amber-600 mr-2">•</span>
-                          Analysis of natural products
-                        </li>
-                        <li class="flex items-start">
-                          <span class="text-amber-600 mr-2">•</span>
-                          Method development and validation
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="documents" class="bg-white p-6 rounded-lg border">
-                  <h2 class="text-xl font-semibold mb-4 text-slate-900">Related Documents</h2>
-                  
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <a href="#" class="flex items-center p-4 border border-blue-100 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
-                      <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
-                        <FileText size={18} />
-                      </div>
-                      <div>
-                        <p class="font-medium text-slate-900">GC-MS User Manual</p>
-                        <p class="text-sm text-slate-500">PDF, 4.2 MB</p>
-                      </div>
-                    </a>
-                    
-                    <a href="#" class="flex items-center p-4 border border-blue-100 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
-                      <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
-                        <FileText size={18} />
-                      </div>
-                      <div>
-                        <p class="font-medium text-slate-900">Sample Preparation Guide</p>
-                        <p class="text-sm text-slate-500">PDF, 2.8 MB</p>
-                      </div>
-                    </a>
-                    
-                    <a href="#" class="flex items-center p-4 border border-blue-100 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
-                      <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
-                        <FileText size={18} />
-                      </div>
-                      <div>
-                        <p class="font-medium text-slate-900">Data Analysis Protocol</p>
-                        <p class="text-sm text-slate-500">PDF, 3.5 MB</p>
-                      </div>
-                    </a>
-                    
-                    <a href="#" class="flex items-center p-4 border border-blue-100 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
-                      <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
-                        <FileText size={18} />
-                      </div>
-                      <div>
-                        <p class="font-medium text-slate-900">Maintenance Guidelines</p>
-                        <p class="text-sm text-slate-500">PDF, 1.7 MB</p>
-                      </div>
-                    </a>
-                  </div>
-                  
-                  <div class="mt-6 bg-amber-50 border border-amber-100 rounded-lg p-4">
-                    <h3 class="font-medium text-amber-800 mb-2">Request Additional Documents</h3>
-                    <p class="text-amber-700 text-sm">
-                      Additional technical documentation, application notes, and method development guides 
-                      are available upon request. Please contact our staff for access.
-                    </p>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-          </Card>
+    <main>
+      <!-- Page Title & Search -->
+      <section class="py-8 md:py-12 bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div class="container mx-auto px-4">
+          <h2 class="text-2xl md:text-3xl font-bold mb-3 text-slate-900">Scientific Instruments</h2>
+          <p class="text-slate-600 mb-6 max-w-3xl">
+            Browse our comprehensive collection of scientific instruments available for researchers, academics, and industry professionals.
+          </p>
           
-          <!-- Related Instruments -->
-          <div class="mt-8">
-            <h2 class="text-xl font-bold text-slate-900 mb-4">Related Instruments</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {#each relatedInstruments as instrument}
-                <Card class="overflow-hidden hover:shadow-md transition-shadow">
-                  <div class="p-4">
-                    <div class="flex items-center space-x-4">
-                      <img src={instrument.image} alt={instrument.name} class="w-16 h-16 rounded-md object-cover" />
-                      <div>
-                        <h3 class="font-medium text-slate-900">{instrument.name}</h3>
-                        <p class="text-sm text-slate-500">{instrument.category}</p>
-                      </div>
-                    </div>
-                    <Button variant="outline" class="w-full mt-3 text-sm">View Details</Button>
-                  </div>
-                </Card>
+          <div class="flex flex-col sm:flex-row gap-4 items-start">
+            <div class="relative w-full sm:w-64">
+              <div class="relative flex w-full items-center">
+                <Input 
+                  type="text" 
+                  bind:value={searchQuery} 
+                  placeholder="Search instruments..." 
+                  class="pr-10 h-12"
+                />
+                <div class="absolute right-3 text-slate-400">
+                  <Search class="h-5 w-5" />
+                </div>
+              </div>
+            </div>
+            
+            {#if selectedCategory !== null || searchQuery !== ""}
+              <Button variant="outline" size="sm" on:click={clearFilters} class="flex items-center px-3">
+                <X class="mr-2 h-4 w-4" />
+                <span>Clear filters</span>
+              </Button>
+            {/if}
+          </div>
+        </div>
+      </section>
+      
+      <!-- Main Content with Filters and Instruments -->
+      <section class="py-8 md:py-12 bg-white">
+        <div class="container mx-auto px-4">
+          <!-- Mobile Category Filter Chips -->
+          <div class="lg:hidden mb-6 overflow-x-auto pb-2">
+            <div class="flex space-x-2">
+              {#each categories as category}
+                <Button 
+                  variant={selectedCategory === category.name ? "default" : "outline"} 
+                  size="sm"
+                  class="whitespace-nowrap"
+                  on:click={() => selectCategory(category.name)}
+                >
+                  <svelte:component this={category.icon} class="mr-2 h-4 w-4" />
+                  <span>{category.name}</span>
+                </Button>
               {/each}
+            </div>
+          </div>
+          
+          <div class="flex flex-col lg:flex-row gap-6 md:gap-8">
+            <!-- Desktop Category Sidebar -->
+            <div class="hidden lg:block w-64 flex-shrink-0">
+              <div class="bg-slate-50 rounded-lg p-5 sticky top-24">
+                <div class="flex items-center mb-4">
+                  <FilterIcon class="w-5 h-5 mr-2 text-blue-600" />
+                  <h3 class="font-bold text-lg">Categories</h3>
+                </div>
+                
+                <div class="space-y-2">
+                  {#each categories as category}
+                    <Button 
+                      variant={selectedCategory === category.name ? "default" : "ghost"} 
+                      class="w-full justify-start text-left h-auto py-3"
+                      on:click={() => selectCategory(category.name)}
+                    >
+                      <svelte:component this={category.icon} class="mr-3 h-4 w-4 flex-shrink-0" />
+                      <div class="truncate">{category.name}</div>
+                    </Button>
+                  {/each}
+                </div>
+              </div>
+            </div>
+            
+            <!-- Instruments Grid -->
+            <div class="flex-1">
+              <!-- Results count -->
+              <div class="mb-4">
+                <p class="text-slate-500">
+                  {filteredInstruments.length} 
+                  {filteredInstruments.length === 1 ? 'instrument' : 'instruments'} found
+                  {selectedCategory ? `in ${selectedCategory}` : ''}
+                </p>
+              </div>
+              
+              {#if filteredInstruments.length === 0}
+                <div class="text-center py-16 bg-slate-50 rounded-lg">
+                  <div class="text-5xl mb-4">🔍</div>
+                  <h3 class="text-xl font-bold mb-2">No instruments found</h3>
+                  <p class="text-slate-500 mb-4">Try adjusting your search or filter criteria</p>
+                  <Button variant="outline" on:click={clearFilters}>Clear all filters</Button>
+                </div>
+              {:else}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {#each filteredInstruments as instrument}
+                    <Card class="overflow-hidden h-full flex flex-col hover:shadow-md transition-shadow">
+                      <div class="relative">
+                        <img src={instrument.image} alt={instrument.name} class="w-full h-48 object-cover" />
+                        <div class="absolute top-3 right-3">
+                          <span class={`px-3 py-1 rounded-full text-xs font-medium ${instrument.availability === 'Available' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
+                            {instrument.availability}
+                          </span>
+                        </div>
+                      </div>
+                      <div class="p-5 flex-1 flex flex-col">
+                        <div class="mb-2">
+                          <div class="text-xs text-blue-600 font-medium mb-1">{instrument.category}</div>
+                          <h3 class="font-bold text-lg mb-1">{instrument.name}</h3>
+                          <p class="text-slate-500 text-sm">Model: {instrument.model}</p>
+                        </div>
+                        <p class="text-slate-600 text-sm mb-4 flex-1">{instrument.description}</p>
+                        <div class="mt-auto">
+                          <Button class="w-full">View Details</Button>
+                        </div>
+                      </div>
+                    </Card>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Request Service Section -->
+
+    </main>
+  
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-300 py-10 mt-auto">
+      <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+          <div>
+            <h3 class="text-white font-bold text-lg mb-4">KMITL Science Instrument Center</h3>
+            <p class="text-sm">Providing cutting-edge scientific equipment and services to researchers, academics, and industry professionals.</p>
+          </div>
+          
+          <div>
+            <h3 class="text-white font-bold text-lg mb-4">Quick Links</h3>
+            <ul class="space-y-2 text-sm">
+              <li><a href="/" class="hover:text-white transition-colors">Home</a></li>
+              <li><a href="/instruments" class="hover:text-white transition-colors">Equipment Catalog</a></li>
+              <li><a href="/prices" class="hover:text-white transition-colors">Service Rates</a></li>
+              <li><a href="/booking" class="hover:text-white transition-colors">Make a Booking</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h3 class="text-white font-bold text-lg mb-4">Resources</h3>
+            <ul class="space-y-2 text-sm">
+              <li><a href="/manuals" class="hover:text-white transition-colors">Equipment Manuals</a></li>
+              <li><a href="/training" class="hover:text-white transition-colors">Training Programs</a></li>
+              <li><a href="/research" class="hover:text-white transition-colors">Research Collaborations</a></li>
+              <li><a href="/faqs" class="hover:text-white transition-colors">FAQs</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h3 class="text-white font-bold text-lg mb-4">Connect with us</h3>
+            <div class="flex space-x-4 mb-4">
+              <a href="#" class="text-slate-300 hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+              </a>
+  
+              <a href="#" class="text-slate-300 hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4S21 3 18 3H6C3 3 2 4 2 4l10 8.5z"/><path d="m22 20-4-6-6 3.5L6 14l-4 6"/><path d="M2 20V4"/><path d="M22 4v16"/></svg>
+              </a>
             </div>
           </div>
         </div>
         
-        <!-- Sidebar -->
-        <div class="space-y-6">
-          <!-- Booking Card -->
-          <Card class="shadow-md overflow-hidden">
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-4">
-              <h2 class="text-xl font-bold text-white">Booking Information</h2>
-            </div>
-            <div class="p-6">
-              <div class="flex flex-col space-y-4 mb-4">
-                <!-- Status -->
-                <div class="flex items-center justify-between">
-                  <span class="text-slate-600">Status:</span>
-                  <Badge class="bg-green-100 text-green-800">Available</Badge>
-                </div>
-                
-                <!-- Rate -->
-                <div class="flex items-center justify-between">
-                  <span class="text-slate-600">Hourly Rate:</span>
-                  <div>
-                    <span class="font-medium">฿2,000</span>
-                    <span class="text-sm text-slate-500 ml-1">/ hour</span>
-                  </div>
-                </div>
-                
-                <!-- Usage Time -->
-                <div class="flex items-center justify-between">
-                  <span class="text-slate-600">Session Duration:</span>
-                  <span class="font-medium">1-4 hours</span>
-                </div>
-              </div>
-              
-              <Separator class="my-4" />
-              
-              <p class="mb-4 text-slate-700">
-                To use this instrument, please register and submit a booking request through our online system.
-              </p>
-              
-              <div class="space-y-3">
-                <Button class="w-full">Book Now</Button>
-                <Button variant="outline" class="w-full">Request Training</Button>
-              </div>
-            </div>
-          </Card>
-          
-          <!-- Maintenance Schedule -->
-          <Card class="shadow-md">
-            <div class="p-6">
-              <h2 class="text-xl font-bold text-slate-900 mb-4">Maintenance Schedule</h2>
-              
-              {#if upcomingMaintenance.length > 0}
-                <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                  <h3 class="font-medium text-amber-800 flex items-center">
-                    <Clock class="h-4 w-4 mr-2" />
-                    Upcoming Maintenance
-                  </h3>
-                  {#each upcomingMaintenance as maintenance}
-                    <div class="mt-2 text-amber-700">
-                      <p><span class="font-medium">Date:</span> {maintenance.date}</p>
-                      <p><span class="font-medium">Duration:</span> {maintenance.duration}</p>
-                    </div>
-                  {/each}
-                </div>
-              {:else}
-                <p class="text-slate-700">No maintenance currently scheduled for this instrument.</p>
-              {/if}
-              
-              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 class="font-medium text-blue-800 mb-2">Regular Maintenance</h3>
-                <p class="text-blue-700 text-sm">
-                  This instrument undergoes regular monthly maintenance to ensure optimal performance.
-                  Please check the calendar before booking.
-                </p>
-              </div>
-            </div>
-          </Card>
-          
-          <!-- Contact Card -->
-          <Card class="shadow-md">
-            <div class="p-6">
-              <h2 class="text-xl font-bold text-slate-900 mb-4">Contact</h2>
-              <p class="mb-4 text-slate-600">For inquiries about this instrument, please contact:</p>
-              
-              <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                <p class="font-medium text-slate-900">Dr. Somchai Vichitsurachai</p>
-                <p class="text-slate-600 mt-1">Instrument Specialist - Chromatography</p>
-                <Separator class="my-3" />
-                <div class="space-y-2 text-slate-700">
-                  <p class="flex items-center">
-                    <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                    </svg>
-                    somchai.v@kmitl.ac.th
-                  </p>
-                  <p class="flex items-center">
-                    <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                    </svg>
-                    +66 2 329 8000 ext. 3456
-                  </p>
-                </div>
-                <Button variant="outline" class="w-full mt-4 text-sm">Send Message</Button>
-              </div>
-            </div>
-          </Card>
+        <Separator class="mb-6 bg-slate-700" />
+        
+        <div class="text-center text-sm">
+          <p>© 2025 KMITL Scientific Instrument Center. All Rights Reserved</p>
         </div>
       </div>
-    </main>
-    
-    <!-- Footer -->
-    </div>
+    </footer>
+  </div>
