@@ -13,11 +13,11 @@
         
         <!-- Navigation -->
         <nav class="hidden md:flex space-x-6">
-          <a href="/" class="text-slate-700 hover:text-blue-600 font-medium transition-colors">บริการของเรา</a>
+          <a href="/ourservices" class="text-slate-700 hover:text-blue-600 font-medium transition-colors">บริการของเรา</a>
           <a href="/prices" class="text-slate-700 hover:text-blue-600 font-medium transition-colors">อัตราค่าบริการ</a>
           <a href="/instruments" class="text-slate-700 hover:text-blue-600 font-medium transition-colors">เครื่องมือวิทยาศาสตร์</a>
           <a href="/" class="text-slate-700 hover:text-blue-600 font-medium transition-colors">ประชาสัมพันธ์</a>
-          <a href="/aboutstaff" class="text-slate-700 hover:text-blue-600 font-medium transition-colors">เกี่ยวกับเรา</a>
+          <a href="/aboutus" class="text-slate-700 hover:text-blue-600 font-medium transition-colors">เกี่ยวกับเรา</a>
         </nav>
         
       </div>
